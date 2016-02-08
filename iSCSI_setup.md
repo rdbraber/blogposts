@@ -89,7 +89,7 @@ current path:
 
 ~~~
 
-The first command we can use is the ls command to show the current target configuration:
+The first command we can use is the `ls` command to show the current target configuration:
 
 ~~~
 /> ls
@@ -104,7 +104,7 @@ o- / ...........................................................................
 /
 ~~~
 
-As shown in the output above, nothing is configured yet. The first thing we are going to configure is the backing storage we want to use. For the purpose of this blog, we use a file-backed block device. We will create a sparse file of 100 Mb in the home directory of the root account. First go to the backstores branch, which you can do by using the cd command:
+As shown in the output above, nothing is configured yet. The first thing we are going to configure is the backing storage we want to use. For the purpose of this blog, we use a file-backed block device. We will create a sparse file of 100 Mb in the home directory of the root account. First go to the backstores branch, which you can do by using the `cd` command:
 
 ~~~
 /> cd /backstores/
@@ -119,7 +119,7 @@ Next create the 100Mb file:
   not supported by kernel.
 ~~~
 
-To show the result of the command, use the ls command again:
+To show the result of the command, use the `ls` command again:
 
 ~~~
 /backstores> ls
@@ -131,7 +131,7 @@ o- backstores ..................................................................
   o- ramdisk .................................................................................................. [Storage Objects: 0]
 ~~~
 
-Now we need to create a unique identifier for the iSCSI target. This is done in the iscsi branch. To go to this branch use the cd command again:
+Now we need to create a unique identifier for the iSCSI target. This is done in the iscsi branch. To go to this branch use the `cd` command again:
 
 ~~~
 /backstores> cd /iscsi
@@ -139,7 +139,7 @@ Now we need to create a unique identifier for the iSCSI target. This is done in 
 ~~~
 
 The name of an iqn must comply to a standard. The normal standard is iqn.\<YYYY>-\<MM>.\<reverse syntax of internet domain name>:\<unique name>. An example of such a name would be iqn.2016-01.com.example:iscsitarget.
-Use the create command to create the iqn:
+Use the `create` command to create the iqn:
 
 ~~~
 /iscsi> create iqn.2016-01.com.example:iscsitarget
@@ -149,7 +149,7 @@ Global pref auto_add_default_portal=true
 Created default portal listening on all IPs (0.0.0.0), port 3260.
 ~~~
 
-With the ls command you can show the newly created iqn:
+With the `ls` command you can show the newly created iqn:
 
 ~~~
 /iscsi> ls
@@ -203,7 +203,7 @@ o- iqn.2016-01.com.example:iscsitarget .........................................
 
 ~~~
 
-The configuration is done now. Just to have a look go back to the root of the configuration and use the ls command again:
+The configuration is done now. Just to have a look go back to the root of the configuration and use the `ls` command again:
 
 ~~~
 /iscsi/iqn.20...e:iscsitarget> cd /
@@ -229,7 +229,7 @@ o- / ...........................................................................
 
 ~~~
 
-When you type the exit command, the configuration is saved and written to the file /etc/target/saveconfig.json. If you want you can take a look at this file, to show the content.
+When you type the `exit` command, the configuration is saved and written to the file `/etc/target/saveconfig.json`. If you want you can take a look at this file, to show the content.
 The iSCSI target service is not active yet, so it must be started. Also we want it to start it when the server boots:
 
 ~~~
@@ -264,11 +264,14 @@ On the iSCSI client we first must install the initiator software:
 ~~~
 
 Once the software is installed, we need to set the iSCSI Initiatorname. This can be done in the file /etc/iscsi/initiatorname.iscsi. During the creation of the ACL we already set the initiatorname to iqn.2016-01.com.example:iclient01.  So make the change in the file and restart the iscsid service:
+
+~~~
 [root@iclient01 ~]# cat /etc/iscsi/initiatorname.iscsi
 InitiatorName=iqn.2016-01.com.example:iclient01
 [root@iclient01 ~]# systemctl restart iscsid
+~~~
 
-Now we discover the iSCSI LUNs on the iSCSI target with the iscsiadm command:
+Now we discover the iSCSI LUNs on the iSCSI target with the `iscsiadm` command:
 
 ~~~
 [root@iclient01 ~]# iscsiadm --mode discovery --type sendtargets --portal itarget01 --discover
@@ -338,7 +341,7 @@ Target: iqn.2016-01.com.example:iscsitarget (non-flash)
 		scsi2 Channel 00 Id 0 Lun: 0
 			Attached scsi disk sdb		State: running
 ~~~
-The last line shows that we have a device with the name sdb, which we can also check with the lsscsi:
+The last line shows that we have a device with the name sdb, which we can also check with the `lsscsi` command:
 
 ~~~
 [root@iclient01 ~]# lsscsi
@@ -352,20 +355,20 @@ We can now create a filesystem on the device:
 [root@iclient01 ~]# mkfs.xfs /dev/sdb
 ~~~
 
-Use the blkid command to find the UUID of the filesystem:
+Use the `blkid` command to find the UUID of the filesystem:
 
 ~~~
 [root@iclient01 ~]# blkid /dev/sdb
 /dev/sdb: UUID="38c0bea4-2edf-4591-a528-d37b809b8c36" TYPE="xfs"
 ~~~
 
-We are going to use the UUID in the file /etc/fstab. Add an entry to this file simular to the following example. The most important part is the **_netdev** option. This is to make sure the device is mounted after the network is started:
+We are going to use the UUID in the file /etc/fstab. Add an entry to this file simular to the following example. The most important part is the `_netdev` option. This is to make sure the device is mounted after the network is started:
 
 ~~~
 UUID=38c0bea4-2edf-4591-a528-d37b809b8c36	/mnt/iscsi	xfs	_netdev	1 2
 ~~~
 
-Create the mountpoint and use the mount command to mount the filesystem:
+Create the mountpoint and use the `mount` command to mount the filesystem:
 
 ~~~
 [root@iclient01 ~]# mkdir /mnt/iscsi
